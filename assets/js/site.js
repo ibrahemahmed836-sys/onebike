@@ -14,7 +14,8 @@ const store = OB.store = {
 };
 const qs = OB.qs = () => new URLSearchParams(location.search);
 const SHIP = OB.SHIP = 69;
-OB.R = html.dataset.root || '';           // '../' på engelska sidor (/en/)
+OB.R = html.dataset.root || '';
+OB.V = html.dataset.v ? '?v=' + html.dataset.v : '';   // versionsnyckel så att ny data inte fastnar i cachen           // '../' på engelska sidor (/en/)
 OB.lang = html.lang === 'en' ? 'en' : 'sv';
 const icon = OB.icon = {
   plus: '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="stroke-width:2.2"><path d="M12 5v14M5 12h14"/></svg>',
@@ -53,12 +54,12 @@ OB.imgTag = (p, alt, sizes, cls = '', eager = false) => {
 
 /* ---------- data ---------- */
 let _p, _c;
-OB.products = () => _p || (_p = fetch(OB.R + 'data/products.json').then(r => r.json()).then(list => {
+OB.products = () => _p || (_p = fetch(OB.R + 'data/products.json' + OB.V).then(r => r.json()).then(list => {
   OB.P = list; OB.byS = {}; OB.groups = {};
   list.forEach(p => { OB.byS[p.s] = p; if (p.k) (OB.groups[p.k] = OB.groups[p.k] || []).push(p); });
   return list;
 }));
-OB.cats = () => _c || (_c = fetch(OB.R + 'data/categories.json').then(r => r.json()).then(c => {
+OB.cats = () => _c || (_c = fetch(OB.R + 'data/categories.json' + OB.V).then(r => r.json()).then(c => {
   if (OB.R) Object.values(c).forEach(e => ['h', 'ci', 'lg'].forEach(k => { if (e[k] && /^assets\//.test(e[k])) e[k] = OB.R + e[k]; }));
   return (OB.C = c);
 }));

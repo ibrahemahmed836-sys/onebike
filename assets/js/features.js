@@ -172,7 +172,7 @@ OB.gearDue = g => {
 
 /* ---------- kompatibilitet (tillbehör ↔ modeller) ---------- */
 let _cp;
-OB.compat = () => _cp || (_cp = Promise.all([OB.products(), fetch(OB.R + 'data/compat.json').then(r => r.json())]).then(([P, j]) => {
+OB.compat = () => _cp || (_cp = Promise.all([OB.products(), fetch(OB.R + 'data/compat.json' + OB.V).then(r => r.json())]).then(([P, j]) => {
   const a = {}, t = {};
   Object.entries(j).forEach(([ax, [labels, tx]]) => {
     const ap = P[+ax]; if (!ap) return;

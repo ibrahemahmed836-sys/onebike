@@ -1,9 +1,8 @@
 /* Onebike – service worker: snabb start och grundläggande offline-stöd.
    HTML hämtas alltid från nätet först (nya versioner syns direkt), data och filer cachas försiktigt.
    Videor och bilder från andra domäner cachas inte (stora filer, byte-intervall). */
-const V = 'ob-v4';
-const SHELL = ['./', 'index.html', 'offline.html', 'assets/css/site.css', 'assets/css/home.css', 'assets/js/site.js', 'assets/js/features.js',
-  'assets/lv/onebike-original-logo.svg', 'assets/img/favicon.svg', 'assets/img/icon-192.png'];
+const V = 'ob-v5';
+const SHELL = ['offline.html', 'assets/lv/onebike-original-logo.svg', 'assets/img/favicon.svg', 'assets/img/icon-192.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

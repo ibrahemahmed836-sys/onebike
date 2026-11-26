@@ -7,7 +7,7 @@ const root = $('#pd');
 let p, size = '', wired = false;
 
 const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h % 64; };
-const descFor = s => fetch(`${OB.R}data/desc/${String(hash(s)).padStart(2, '0')}.json`).then(r => r.json()).then(m => m[s]).catch(() => null);
+const descFor = s => fetch(`${OB.R}data/desc/${String(hash(s)).padStart(2, '0')}.json${OB.V}`).then(r => r.json()).then(m => m[s]).catch(() => null);
 
 function fmtDesc(d) {
   if (!d) return '<p>Kontakta oss om du vill veta mer om produkten – vi hjälper dig gärna med passform och val.</p>';
