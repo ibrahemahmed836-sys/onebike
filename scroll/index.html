@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OneBike – konceptdesign</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Konceptdesign för OneBike: scrolla genom nattens värld av MC-, cross- och skoterutrustning.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a night-ride motorsport campaign — confident, fast, premium, never noisy.
+   IDEA: one continuous night ride through the store's world; the gear waits on a lit shelf.
+   PICTURE: full-bleed cinematic film scrubbed by scroll; real product cutouts on red-lit pedestals.
+   COLOUR and TYPE: black #0A0A0B, white #F5F5F3, racing red #E10600; Barlow Condensed + Inter.
+   LAYOUT: copy upper-left, a shelf of five along the bottom, quick view slides in from the right. */
+:root,.sw-root{--sw-bg:#0A0A0B;--sw-ink:#F5F5F3;--sw-ink-soft:#A7A9AE;--sw-accent:#E10600;
+  --sw-font-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --sw-font-body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --red:#E10600;--line:rgba(255,255,255,.10);--glass:rgba(16,16,18,.72)}
+html{color-scheme:dark;scroll-padding-top:72px}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:#0A0A0B;color:#F5F5F3;font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+
+/* ---- engine theme overrides (unlayered, so they beat the engine's @layer sw) ---- */
+.sw-sky__grad{background:linear-gradient(180deg,#0A0A0B,#0d0b0b 60%,#0A0A0B)}
+.sw-sky__glow{background:radial-gradient(55% 45% at 72% 18%,rgba(225,6,0,.10),transparent 70%)}
+.sw-pt{display:none}
+.sw-topbar{background:linear-gradient(180deg,rgba(10,10,11,.85),rgba(10,10,11,0));padding-top:max(14px,env(safe-area-inset-top))}
+.sw-brand{gap:10px}
+.ob-logo{display:block;height:56px;width:auto;filter:drop-shadow(0 2px 10px rgba(0,0,0,.45))}
+.sw-brand__name{font-family:var(--sw-font-display);font-weight:800;font-style:italic;font-size:1.65rem;letter-spacing:.01em;line-height:1}
+.ob-concept{font-size:.72rem;font-weight:600;color:var(--sw-ink-soft);border:1px solid var(--line);padding:4px 9px;border-radius:999px;margin-left:8px;white-space:nowrap;font-style:normal}
+.sw-nav{background:rgba(18,18,20,.6);border-color:var(--line)}
+.sw-nav__item{color:var(--sw-ink-soft);font-weight:600}
+.sw-nav__item:hover{color:#fff}
+.sw-nav__item.is-active{background:var(--red);color:#fff}
+.sw-topcta{background:var(--red);color:#fff;font-weight:700}
+.sw-topcta:hover{background:#ff1a12}
+.sw-copy{top:30%}
+.sw-copy.has-shelf{top:19%}
+.sw-copy__num{display:none}
+.sw-copy__eyebrow{margin-top:0;letter-spacing:.06em;font-size:.95rem;color:var(--red)}
+.sw-copy__title{font-weight:800;font-style:italic;text-transform:uppercase;font-size:clamp(2.6rem,5.4vw,4.9rem);line-height:.92;letter-spacing:0;color:#fff;text-wrap:balance;text-shadow:0 4px 30px rgba(0,0,0,.55)}
+.sw-copy__body{color:#D9DADC;font-size:clamp(1rem,1.2vw,1.12rem)}
+.sw-copy__tags li{background:rgba(255,255,255,.06);border:1px solid var(--line);color:#F5F5F3;font-weight:600}
+.sw-copy__tags li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:8px;vertical-align:middle;transform:translateY(-1px)}
+.sw-btn--primary{background:var(--red);color:#fff}
+.sw-btn--ghost{color:#F5F5F3;border-color:rgba(255,255,255,.3)}
+.sw-route__label{background:rgba(18,18,20,.88);color:#F5F5F3;border-color:var(--line)}
+.sw-hint{color:#C9CACD}
+
+/* ---- product shelf ---- */
+.shelf-scrim{position:fixed;left:0;right:0;bottom:0;height:52vh;z-index:25;pointer-events:none;opacity:0;
+  background:linear-gradient(0deg,rgba(10,10,11,.96) 0%,rgba(10,10,11,.78) 40%,rgba(10,10,11,0) 100%)}
+.shelf{position:fixed;z-index:30;left:clamp(18px,5vw,64px);right:clamp(18px,5vw,64px);bottom:max(22px,env(safe-area-inset-bottom));
+  max-width:1240px;opacity:0;pointer-events:none}
+.shelf__head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:12px}
+.shelf__title{font-family:var(--sw-font-display);font-weight:700;font-size:1.35rem;letter-spacing:.01em}
+.shelf__title b{color:var(--red);font-weight:800}
+.shelf__all{font-weight:600;font-size:.92rem;text-decoration:none;color:#fff;border-bottom:2px solid var(--red);padding-bottom:2px;white-space:nowrap}
+.shelf__all:hover{color:var(--red)}
+.shelf__row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.cw{will-change:transform,opacity;transition:transform .32s cubic-bezier(.2,.7,.2,1),opacity .32s}
+.card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;cursor:pointer;border-radius:18px;
+  background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  overflow:hidden;position:relative;transition:transform .35s cubic-bezier(.2,.7,.2,1),border-color .35s,box-shadow .35s}
+.card:hover,.card:focus-visible{transform:translateY(-6px);border-color:rgba(225,6,0,.6);box-shadow:0 18px 40px rgba(0,0,0,.5),0 0 0 1px rgba(225,6,0,.25)}
+.card__stage{position:relative;display:block;height:clamp(104px,16vh,178px);
+  background:radial-gradient(65% 55% at 50% 92%,rgba(225,6,0,.55),rgba(225,6,0,0) 70%),radial-gradient(80% 70% at 50% 30%,#2a2a2e,#121214 72%)}
+.card__stage::after{content:"";position:absolute;left:18%;right:18%;bottom:10px;height:10px;border-radius:50%;background:rgba(0,0,0,.55);filter:blur(6px)}
+.card__stage img{position:absolute;z-index:1;top:8%;left:10%;width:80%;height:80%;object-fit:contain;
+  filter:drop-shadow(0 0 1px rgba(255,255,255,.35)) drop-shadow(0 12px 16px rgba(0,0,0,.6));transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.card:hover .card__stage img,.card:focus-visible .card__stage img{transform:scale(1.08) rotate(-2deg)}
+.card__off{position:absolute;top:10px;left:10px;z-index:2;background:var(--red);color:#fff;font-weight:700;font-size:.74rem;padding:3px 8px;border-radius:999px}
+.card__body{display:flex;flex-direction:column;gap:2px;padding:11px 13px 13px}
+.card__brand{font-size:.74rem;color:var(--sw-ink-soft);font-weight:600}
+.card__name{font-weight:600;font-size:.9rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.5em}
+.card__price{display:flex;align-items:baseline;gap:8px;margin-top:4px;white-space:nowrap}
+.card__price b{color:#fff;font-size:1rem}
+.card__price s{color:#7d7f84;font-size:.8rem}
+
+/* ---- quick view ---- */
+.qv{position:fixed;inset:0;z-index:90;display:none}
+.qv.is-open{display:block}
+.qv__scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;transition:opacity .35s}
+.qv.is-in .qv__scrim{opacity:1}
+.qv__panel{position:absolute;top:0;right:0;bottom:0;width:min(460px,100%);background:#111113;border-left:1px solid var(--line);
+  display:flex;flex-direction:column;overflow-y:auto;transform:translateX(100%);transition:transform .45s cubic-bezier(.2,.8,.2,1);
+  padding:calc(18px + env(safe-area-inset-top)) 26px calc(26px + env(safe-area-inset-bottom))}
+.qv.is-in .qv__panel{transform:none}
+.qv__top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.qv__count{font-size:.85rem;color:var(--sw-ink-soft)}
+.ibtn{all:unset;box-sizing:border-box;width:44px;height:44px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);cursor:pointer;color:#fff;font-size:1.2rem}
+.ibtn:hover{border-color:var(--red)}
+.ibtn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.qv__stage{position:relative;flex:none;height:min(42vh,360px);border-radius:20px;margin-bottom:20px;
+  background:radial-gradient(60% 50% at 50% 95%,rgba(225,6,0,.5),rgba(225,6,0,0) 70%),radial-gradient(80% 70% at 50% 30%,#2a2a2e,#121214 75%)}
+.qv__stage img{position:absolute;top:7%;left:9%;width:82%;height:84%;object-fit:contain;filter:drop-shadow(0 0 1px rgba(255,255,255,.35)) drop-shadow(0 18px 22px rgba(0,0,0,.6))}
+.qv__brand{margin:0;color:var(--red);font-weight:700;font-size:.9rem}
+.qv h3{margin:2px 0 10px;font-family:var(--sw-font-display);font-weight:800;font-size:2rem;line-height:1.02;text-wrap:balance}
+.qv__desc{margin:0 0 12px;color:#CFD0D3}
+.qv__feat{margin:0 0 18px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+.qv__feat li{font-size:.82rem;border:1px solid var(--line);padding:5px 11px;border-radius:999px;color:#E6E7E9}
+.qv__price{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.qv__price b{font-size:1.7rem;font-family:var(--sw-font-display);font-weight:800;white-space:nowrap}
+.qv__price s{color:#7d7f84;white-space:nowrap}
+.qv__save{background:rgba(225,6,0,.15);color:#ff5a52;font-weight:700;font-size:.8rem;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.qv__buy{display:flex;justify-content:center;align-items:center;min-height:52px;border-radius:999px;background:var(--red);color:#fff;font-weight:700;text-decoration:none;transition:background .2s}
+.qv__buy:hover{background:#ff1a12}
+.qv__usp{list-style:none;margin:18px 0 0;padding:16px 0 0;border-top:1px solid var(--line);display:grid;gap:8px;font-size:.88rem;color:#CFD0D3}
+.qv__usp li{display:flex;gap:10px;align-items:center}
+.qv__usp svg{flex:none;color:var(--red)}
+
+/* ---- footer ---- */
+.foot{position:relative;z-index:45;background:#0A0A0B;border-top:1px solid var(--line);padding:clamp(36px,5vw,64px) max(5vw,18px) calc(30px + env(safe-area-inset-bottom))}
+.foot__in{max-width:1180px;margin:0 auto}
+.foot__usp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:40px}
+.usp{display:flex;gap:14px;align-items:center;padding:18px 20px;border:1px solid var(--line);border-radius:16px;background:#111113}
+.usp svg{flex:none;color:var(--red)}
+.usp b{display:block;font-size:.98rem}
+.usp span{font-size:.85rem;color:var(--sw-ink-soft)}
+.foot__cols{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px}
+.foot h4{margin:0 0 12px;font-size:.92rem;color:#fff}
+.foot ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.foot ul a{color:#C9CACD;text-decoration:none}
+.foot ul a:hover{color:#fff;text-decoration:underline;text-decoration-color:var(--red)}
+.foot__logo{display:block;height:64px;width:auto}
+.foot__tag{color:var(--sw-ink-soft);margin:8px 0 0;max-width:34ch}
+.foot__note{margin:40px 0 0;padding-top:18px;border-top:1px solid var(--line);font-size:.8rem;color:#8b8d92}
+
+@media (max-width:860px){
+  .ob-concept{display:none}
+  .ob-logo{height:40px}
+  .sw-copy{top:auto}
+  .sw-copy.has-shelf{top:calc(76px + env(safe-area-inset-top));bottom:auto}
+  .sw-copy.has-shelf .sw-copy__body{display:none}
+  .sw-copy__title{font-size:clamp(2.3rem,10vw,3.2rem)}
+  .shelf{left:0;right:0}
+  .shelf__head{padding:0 46px 0 18px}
+  .shelf__row{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:4px 18px 6px;scrollbar-width:none}
+  .shelf__row::-webkit-scrollbar{display:none}
+  .cw{flex:0 0 46%;scroll-snap-align:start}
+  .card__stage{height:150px}
+  .foot__usp,.foot__cols{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){
+  .cw,.card,.card__stage img,.qv__panel,.qv__scrim{transition:none}
+}
+</style>
+</head>
+<body>
+<div id="top"></div>
+<div id="world"></div>
+
+<div class="shelf-scrim" id="shelfScrim" aria-hidden="true"></div>
+<div id="shelves"></div>
+
+<div class="qv" id="qv" aria-hidden="true">
+  <div class="qv__scrim" data-close></div>
+  <aside class="qv__panel" role="dialog" aria-modal="true" aria-labelledby="qvTitle">
+    <div class="qv__top">
+      <span class="qv__count" id="qvCount"></span>
+      <span style="display:flex;gap:8px">
+        <button class="ibtn" id="qvPrev" aria-label="Föregående produkt">&#8592;</button>
+        <button class="ibtn" id="qvNext" aria-label="Nästa produkt">&#8594;</button>
+        <button class="ibtn" data-close aria-label="Stäng">&#10005;</button>
+      </span>
+    </div>
+    <div class="qv__stage"><img id="qvImg" alt=""></div>
+    <p class="qv__brand" id="qvBrand"></p>
+    <h3 id="qvTitle"></h3>
+    <p class="qv__desc" id="qvDesc"></p>
+    <ul class="qv__feat" id="qvFeat"></ul>
+    <div class="qv__price"><b id="qvNow"></b><s id="qvWas"></s><span class="qv__save" id="qvSave"></span></div>
+    <a class="qv__buy" id="qvBuy" href="https://www.onebike.se/" target="_blank" rel="noopener">Köp på onebike.se</a>
+    <ul class="qv__usp">
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17.5" cy="17.5" r="1.8"/></svg>Snabba leveranser</li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg>30 dagars öppet köp</li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Säker betalning</li>
+    </ul>
+  </aside>
+</div>
+
+<footer class="foot">
+  <div class="foot__in">
+    <div class="foot__usp">
+      <div class="usp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17.5" cy="17.5" r="1.8"/></svg><div><b>Snabba leveranser</b><span>Hem till dig, snabbt och smidigt</span></div></div>
+      <div class="usp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg><div><b>30 dagars öppet köp</b><span>Prova i lugn och ro hemma</span></div></div>
+      <div class="usp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><div><b>Dainese D-Air Service Center</b><span>Officiell service av D-Air airbag</span></div></div>
+    </div>
+    <div class="foot__cols">
+      <div>
+        <img class="foot__logo" src="assets/logo.png" alt="OneBike" width="192" height="96" loading="lazy">
+        <p class="foot__tag">Din cross- &amp; motorcykelbutik online – utrustning för gata, cross och snö.</p>
+      </div>
+      <div>
+        <h4>Kategorier</h4>
+        <ul>
+          <li><a href="https://www.onebike.se/category/mc-klader" target="_blank" rel="noopener">Motorcykel</a></li>
+          <li><a href="https://www.onebike.se/category/crossklader" target="_blank" rel="noopener">Motocross</a></li>
+          <li><a href="https://www.onebike.se/category/skoterklader" target="_blank" rel="noopener">Snöskoter</a></li>
+          <li><a href="https://www.onebike.se/category/mc-tillbehor" target="_blank" rel="noopener">MC Tillbehör</a></li>
+          <li><a href="https://www.onebike.se/category/outlet" target="_blank" rel="noopener">Outlet</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Kundtjänst</h4>
+        <ul>
+          <li><a href="https://www.onebike.se/customer-service" target="_blank" rel="noopener">Kontakta oss</a></li>
+          <li><span style="color:#C9CACD">info@onebike.se</span></li>
+          <li><a href="https://www.onebike.se/customer" target="_blank" rel="noopener">Mina sidor</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="foot__note">Konceptdesign – inte OneBikes officiella webbplats. Produkter, priser och produktbilder från onebike.se (25 november 2026); köp sker på onebike.se.</p>
+  </div>
+</footer>
+
+<script src="scrub-engine.js"></script>
+<script>
+{
+  const SHOP = 'https://www.onebike.se/product/';
+  const kr = n => n.toLocaleString('sv-SE').replace(/\s/g, ' ') + ' kr';
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // Products per section index (from onebike.se, 25 Nov 2026)
+  const P = (brand, name, now, was, img, slug, desc, feat) => ({ brand, name, now, was, img: 'assets/p/' + img + '.webp', slug, desc, feat });
+  const SHELVES = {
+    1: { title: 'Utvalt i', cat: 'Motorcykel', all: 'https://www.onebike.se/category/mc-klader', items: [
+      P('Alpinestars','GP Plus V4 Sprint Helställ Fluo-Röd/Svart',15992,19990,'mc1','alpinestars-gp-plus-v4-sprint-helstall-fluo-rod-svart','Premium skinnställ med racinginspirerad design, förberett för Alpinestars Tech-Air® 7x-airbagsystem.',['Aerodynamisk ryggpuckel','Perforerat']),
+      P('AGV','K1 S Hjälm Mattsvart',1912,2390,'mc2','agv-k1-s-hjalm-mattsvart','K1 S-hjälmen väcker racingandan i dig, så att du kan bemästra de dagliga utmaningarna.',['Tvättbar inredning','D-ringspänne','ECE 22-06 godkänd']),
+      P('Alpinestars','TechAir 5 Plasma Airbag Väst',7752,9690,'mc3','alpinestars-techair-5-plasma-airbag-vast','Ultralätt airbagväst designad för att bäras sömlöst under jackan, med bekväm och anpassningsbar passform.',['LED-display','Bärs under jackan']),
+      P('Alpinestars','SP-3 Handskar Svart/Svart',872,1090,'mc4','alpinestars-sp-3-handskar-svart-svart','Prisvärda handskar från Alpinestars tillverkade av getskinn.',['Pekskärmskompatibla','Dubbelt stängningssystem','CE-godkända']),
+      P('Halvarssons','Bofallet Regnbyxa Svart',792,990,'mc5','halvarssons-bofallet-regnbyxa-svart','Vattentäta regnbyxor för motorcykel med Dryway+-membran.',['Stretchiga överdragsbyxor','Vattentäta']),
+    ]},
+    2: { title: 'Utvalt i', cat: 'Motocross', all: 'https://www.onebike.se/category/crossklader', items: [
+      P('Airoh','Twist 3 Hjälm Amazonia',2152,2690,'cr1','airoh-twist-3-hjalm-amazonia','Lätt och bekväm crosshjälm – man får definitivt valuta för pengarna. Rymmer även större goggles.',['Grym passform','Effektiv ventilation']),
+      P('Alpinestars','RK-7 Plasma Knästöd Svart/Röd',4792,5990,'cr2','alpinestars-rk-7-plasma-knastod-svart-rod','Lätt och ventilerat knäskydd för motocross och enduro. Den smala designen ger bra rörelsefrihet.',['Fiberförstärkt konstruktion','Smal design']),
+      P('Leatt','2.5 Bröstskydd Svart',1272,1590,'cr3','leatt-2-5-brostskydd-svart','Lätt bröstskydd med hårt skal för bröstet och ett CE-certifierat stötskydd för ryggen.',['Slimmad passform','Justerbart']),
+      P('100%','Airmatic 2 Crosshandskar Svart/Vit',343,429,'cr4','100-airmatic-2-crosshandskar-svart-vit','Vardagskomfort – den perfekta handsken för alla typer av körning.',['Justerbart handledsspänne','Silikontryck','Ventilerad']),
+      P('FXR','Podium Barn Cross Klädset Svart/Vit',1344,1680,'cr5','fxr-podium-barn-cross-kladset-svart-vit','Crossklädset (tröja och byxa) för barn med anatomisk passform, slitstarkt material och perforerade nätpaneler.',['Tröja + byxa','För barn']),
+    ]},
+    3: { title: 'Utvalt i', cat: 'Snöskoter', all: 'https://www.onebike.se/category/skoterklader', items: [
+      P('FXR','Cold Cross CX Lite Monosuit Röd/Svart',5512,6890,'sk1','fxr-cold-cross-cx-lite-monosuit-rod-svart','Prisvärd snöskoteroverall från FXR med slitstarkt 450D-polyesterskal och justerbar huva.',['HydrX™ 10 000 mm','Vattentät','Skaloverall']),
+      P('Tobe','T9 Carbon Hjälm Kit Svart/Vit',5592,6990,'sk2','tobe-t9-carbon-hjalm-kit-svart-vit','Premiumhjälm för snöskoter som kombinerar låg vikt, avancerad ventilation, hög komfort och genomtänkta säkerhetsfunktioner.',['Goggles ingår','Låg vikt']),
+      P('Tobe','T7 Magnetic Glasögon Svart/Röd',1112,1390,'sk3','tobe-t7-magnetic-glasogon-svart-rod','Goggles för åkare som kräver perfekt optisk klarhet och omedelbar anpassning till ändrat ljus.',['50 mm band','Avtagbart nässkydd']),
+      P('Tobe','Capto Gauntlet V3 Handske Svart',1112,1390,'sk4','tobe-capto-gauntlet-v3-handske-svart','Snöskoterhandskar från Tobe med läder av hög kvalitet och optimal andningsförmåga.',['100 % vind- och vattentät','Läder']),
+      P('Tobe','Podex Mitten Handske Svart',1032,1290,'sk5','tobe-podex-mitten-handske-svart','Tumvantar från Tobe för kalla dagar på skotern.',['Tumvante']),
+    ]},
+    4: { title: 'Utvalt i', cat: 'MC Tillbehör', all: 'https://www.onebike.se/category/mc-tillbehor', items: [
+      P('Cardo','PackTalk Edge JBL Intercom Singel',3679,4599,'tb1','cardo-packtalk-edge-jbl-intercom-singel','PackTalk EDGE monteras smidigt med magnetfästet – enkelt och säkert.',['JBL 40 mm','Vattentät','13 timmars taltid','Bluetooth 5.2']),
+      P('Quad Lock','Pro Smartphone Handlebar Mount Svart',623,779,'tb2','quad-lock-pro-smartphone-handlebar-mount-svart','Monteringslösning för mobilen på ditt styre, i stående och liggande format.',['Styre 22/25/28/32 mm']),
+      P('Quad Lock','Wireless Charging Pad',599,749,'tb3','quad-lock-wireless-charging-pad','Ladda din smartphone och andra kompatibla enheter enkelt och smidigt.',['Stilren design','Hem och kontor']),
+      P('Muc-Off','Motorcycle Chain Care Kit',383,479,'tb4','muc-off-motorcycle-chain-care-kit','Ett komplett kit för rengöring och smörjning av motorcykelkedjan.',['Rengöring','Smörjning']),
+      P('Muc-Off','Pressure Washer Large Box Moto',2152,2690,'tb5','muc-off-pressure-washer-large-box-moto-eu-inc-fluid-','Tvätta din motorcykel snabbt och enkelt med Muc-Offs högtryckstvätt i motorcykelpaket.',['3 spolmunstycken','1 liter rengöringsmedel']),
+    ]},
+    5: { title: 'Fynd i', cat: 'Outlet', all: 'https://www.onebike.se/category/outlet', items: [
+      P('Arai','RX-7V EVO Hjälm Vit',8990,11499,'ou1','arai-rx-7v-evo-hjalm-vit-','En vidareutveckling av toppmodellen RX-7V, som representerar toppen av Arais kunskap inom hjälmteknik.',['Toppmodell']),
+      P('Dainese','Torque 3 Out Stövel Vit/Röd',3390,4590,'ou2','dainese-torque-3-out-stovel-vit-rod','Sportstövlar i mikrofiber och D-Stone-tyg med TPU-inlägg för förbättrat grepp.',['Skön passform','CE-godkänd']),
+      P('Held','Titan RR Handskar Svart/Svart',3990,6590,'ou3','held-titan-rr-handskar-svart-svart','Titan RR-handskar erbjuder optimal säkerhet med ny sömteknik.',['Knogskydd i titan','100 % känguruläder','CE-godkänd']),
+      P('Alpinestars','Stella Missile Dam Skinnbyxa Svart',2990,4790,'ou4','alpinestars-stella-missile-dam-skinnbyxa-svart','Skinnbyxa optimerad för en kvinnas passform, i 1,3 mm fullnarvat koläder.',['CE-certifierade skydd','Kopplas till damjacka']),
+      P('Daytona','Security EVO G3 Stövel Svart/Svart',9990,13990,'ou5','daytona-security-evo-g3-stovel-svart-svart','Mycket säker racingstövel med Daytonas unika tvåskalsteknik.',['Innersko förstärkt med Kevlar®']),
+    ]},
+  };
+
+  const SECTIONS = [
+    { id:'hem', label:'Hem', still:'assets/hem.webp', clip:'assets/vid/hem.mp4', accent:'#E10600', scroll:1.5, linger:0.3,
+      eyebrow:'Din cross- & motorcykelbutik online', title:'Utrustad för varje kurva.',
+      body:'Hjälmar, skydd och kläder för gata, cross och snö – från världens ledande varumärken, snabbt levererat hem till dig.',
+      tags:['Snabba leveranser','30 dagars öppet köp','D-Air servicecenter'] },
+    { id:'motorcykel', label:'Motorcykel', still:'assets/mc.webp', clip:'assets/vid/mc.mp4', accent:'#E10600', scroll:2.4, linger:0.4,
+      eyebrow:'Motorcykel', title:'Gjord för asfalten.',
+      body:'Skinnställ, hjälmar och airbagvästar som skyddar dig när vägen svänger.' },
+    { id:'motocross', label:'Motocross', still:'assets/cross.webp', clip:'assets/vid/cross.mp4', accent:'#E10600', scroll:2.4, linger:0.4,
+      eyebrow:'Motocross', title:'Redo för varje hopp.',
+      body:'Hjälmar, knäskydd och bröstskydd för sand, grus och skog – för både vuxna och barn.' },
+    { id:'snoskoter', label:'Snöskoter', still:'assets/skoter.webp', clip:'assets/vid/skoter.mp4', accent:'#E10600', scroll:2.4, linger:0.4,
+      eyebrow:'Snöskoter', title:'Varm i djupsnön.',
+      body:'Overaller, hjälmar och goggles som håller kylan ute – från familjeturen till skotercrossen.' },
+    { id:'tillbehor', label:'Tillbehör', still:'assets/tillbehor.webp', clip:'assets/vid/tillbehor.mp4', accent:'#E10600', scroll:2.4, linger:0.4,
+      eyebrow:'MC Tillbehör', title:'Smart utrustad.',
+      body:'Intercom, mobilfästen och vård för din motorcykel – allt som gör varje tur enklare.' },
+    { id:'outlet', label:'Outlet', still:'assets/outlet.webp', clip:'assets/vid/outlet.mp4', accent:'#E10600', scroll:2.4, linger:0.4,
+      eyebrow:'Outlet', title:'Toppmärken. Lägre priser.',
+      body:'Utvalda hjälmar, stövlar och handskar till nedsatta priser – medan lagret räcker.',
+      cta:{ primary:{ label:'Handla i Outlet', href:'https://www.onebike.se/category/outlet' },
+            secondary:{ label:'Till onebike.se', href:'https://www.onebike.se/' } } },
+  ];
+  const N = SECTIONS.length;
+
+  // ---- build shelves (before mount: the engine calls onSection during its first layout) ----
+  const host = document.getElementById('shelves');
+  const scrim = document.getElementById('shelfScrim');
+  const built = {};
+  const foot = document.querySelector('.foot');
+  Object.keys(SHELVES).forEach(k => {
+    const s = SHELVES[k];
+    const el = document.createElement('section');
+    el.className = 'shelf';
+    el.setAttribute('aria-label', 'Utvalda produkter – ' + s.cat);
+    el.innerHTML =
+      `<div class="shelf__head"><span class="shelf__title">${esc(s.title)} <b>${esc(s.cat)}</b></span>` +
+      `<a class="shelf__all" href="${esc(s.all)}" target="_blank" rel="noopener">Visa alla &#8594;</a></div>` +
+      `<div class="shelf__row">` + s.items.map((p, i) => {
+        const off = Math.round((1 - p.now / p.was) * 100);
+        return `<div class="cw"><button class="card" data-sec="${k}" data-i="${i}" aria-label="${esc(p.brand + ' ' + p.name + ', ' + kr(p.now))}">` +
+          `<span class="card__stage"><img src="${esc(p.img)}" alt="" loading="lazy" decoding="async"></span>` +
+          `<span class="card__off">&minus;${off}%</span>` +
+          `<span class="card__body"><span class="card__brand">${esc(p.brand)}</span><span class="card__name">${esc(p.name)}</span>` +
+          `<span class="card__price"><b>${kr(p.now)}</b><s>${kr(p.was)}</s></span></span></button></div>`;
+      }).join('') + `</div>`;
+    host.appendChild(el);
+    built[k] = { el, wraps: [...el.querySelectorAll('.cw')] };
+  });
+
+  const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+  const ease = x => 1 - Math.pow(1 - clamp(x), 3);
+  let scrimV = 0;
+  function onSection(i, pr, cop, before, after) {
+    const b = built[i];
+    if (!b) return;
+    const last = i === N - 1;
+    const inn = before ? 0 : clamp((pr - 0.14) / 0.2);
+    let out = 0;
+    if (!last) out = after ? 1 : clamp((pr - 0.86) / 0.1);
+    let fv = 1;
+    if (last && foot) { const vh = window.innerHeight; fv = clamp((foot.getBoundingClientRect().top - vh * 0.35) / (vh * 0.45)); }
+    const v = Math.min(inn, 1 - out) * fv;
+    b.el.style.opacity = v > 0.001 ? '1' : '0';
+    b.el.style.pointerEvents = v > 0.6 ? 'auto' : 'none';
+    b.el.querySelector('.shelf__head').style.opacity = ease(v);
+    b.wraps.forEach((w, k) => {
+      const e = Math.min(ease((pr - 0.14 - k * 0.035) / 0.18) * (before ? 0 : 1), 1 - out, fv);
+      w.style.opacity = e.toFixed(3);
+      w.style.transform = `translate3d(0,${((1 - e) * 46).toFixed(1)}px,0)`;
+    });
+    scrimV = v;
+    scrim.style.opacity = scrimV.toFixed(3);
+  }
+
+  const world = mountScrollWorld(document.getElementById('world'), {
+    brand: { name: 'OneBike', href: '#top' },
+    cta: { label: 'Handla nu', href: 'https://www.onebike.se/' },
+    hint: 'Scrolla och kör',
+    connScroll: 1.0,
+    crossfade: 0.1,
+    sections: SECTIONS,
+    connectors: ['assets/vid/conn1.mp4','assets/vid/conn2.mp4','assets/vid/conn3.mp4','assets/vid/conn4.mp4','assets/vid/conn5.mp4'],
+    onSection,
+  });
+
+  // brand mark: heartbeat line + concept badge
+  const brand = document.querySelector('.sw-brand');
+  if (brand) {
+    brand.setAttribute('aria-label', 'OneBike');
+    brand.innerHTML = '<img class="ob-logo" src="assets/logo.png" alt="OneBike" width="192" height="96">';
+    const c = document.createElement('span'); c.className = 'ob-concept'; c.textContent = 'Konceptdesign'; brand.appendChild(c);
+  }
+  document.querySelectorAll('.sw-copy').forEach((c, i) => { if (SHELVES[i]) c.classList.add('has-shelf'); });
+
+  // ---- quick view ----
+  const qv = document.getElementById('qv');
+  const $ = id => document.getElementById(id);
+  let cur = null, lastFocus = null;
+  function fill() {
+    const s = SHELVES[cur.sec], p = s.items[cur.i];
+    $('qvImg').src = p.img; $('qvImg').alt = p.brand + ' ' + p.name;
+    $('qvBrand').textContent = p.brand;
+    $('qvTitle').textContent = p.name;
+    $('qvDesc').textContent = p.desc;
+    $('qvFeat').innerHTML = p.feat.map(f => `<li>${esc(f)}</li>`).join('');
+    $('qvNow').textContent = kr(p.now);
+    $('qvWas').textContent = kr(p.was);
+    $('qvSave').textContent = 'Spara ' + kr(p.was - p.now);
+    $('qvBuy').href = SHOP + p.slug;
+    $('qvCount').textContent = (cur.i + 1) + ' av ' + s.items.length + ' · ' + s.cat;
+  }
+  function open(sec, i) {
+    cur = { sec, i }; fill(); lastFocus = document.activeElement;
+    qv.classList.add('is-open'); qv.setAttribute('aria-hidden', 'false');
+    document.documentElement.style.overflow = 'hidden';
+    requestAnimationFrame(() => requestAnimationFrame(() => qv.classList.add('is-in')));
+    setTimeout(() => $('qvBuy').focus({ preventScroll: true }), 60);
+  }
+  function close() {
+    qv.classList.remove('is-in'); qv.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    setTimeout(() => qv.classList.remove('is-open'), 420);
+    if (lastFocus) lastFocus.focus({ preventScroll: true });
+  }
+  function step(d) { const n = SHELVES[cur.sec].items.length; cur.i = (cur.i + d + n) % n; fill(); }
+  host.addEventListener('click', e => { const c = e.target.closest('.card'); if (c) open(+c.dataset.sec, +c.dataset.i); });
+  qv.addEventListener('click', e => { if (e.target.closest('[data-close]')) close(); });
+  $('qvPrev').addEventListener('click', () => step(-1));
+  $('qvNext').addEventListener('click', () => step(1));
+  document.addEventListener('keydown', e => {
+    if (!qv.classList.contains('is-open')) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowRight') step(1);
+    else if (e.key === 'ArrowLeft') step(-1);
+  });
+}
+</script>
+</body>
+</html>

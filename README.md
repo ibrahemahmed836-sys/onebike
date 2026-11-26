@@ -46,6 +46,10 @@ Byggd för GitHub Pages: ren HTML, CSS och JavaScript utan byggsteg.
 
 Startsidans stora bilder är korta videor (Seedance 2.5 via Magnific) som spolas med scrollen: `assets/vid/` – full version för dator och lättare `-m`-version för mobil. Ingen video vid ”minska rörelse”, ”spara data” eller långsam uppkoppling.
 
+## Scrollkoncept
+
+En fristående konceptsida där scrollen styr kameran genom sex filmade scener (Hem, Motorcykel, Motocross, Snöskoter, Tillbehör, Outlet) med fem utvalda produkter per kategori: `scroll/` · https://ibrahemahmed836-sys.github.io/onebike/scroll/
+
 ## Bra att veta
 
 - **Kitrabatt 10 %** när minst 4 delar köps som kit är ett förslag. Ändra `OB.KIT` i `assets/js/site.js` (sätt `pct: 0` för att stänga av) innan lansering.
