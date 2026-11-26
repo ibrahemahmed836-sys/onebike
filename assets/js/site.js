@@ -157,6 +157,7 @@ let tt;
 OB.toast = (txt, head = 'Tillagd i varukorgen') => {
   const t = $('#toast'); if (!t) return;
   $('#toastH').textContent = head; $('#toastTxt').textContent = txt;
+  const tb = t.querySelector('[data-open="cart"]'); if (tb) tb.hidden = head !== 'Tillagd i varukorgen';
   t.classList.remove('on'); void t.offsetWidth; t.classList.add('on');
   clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3000);
 };

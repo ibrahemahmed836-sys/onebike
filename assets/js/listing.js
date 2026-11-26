@@ -156,11 +156,24 @@ function renderGrid(reset) {
   } else { more.innerHTML = view.length ? `<p class="mut tnum" style="font-size:14px">Visar alla ${view.length} produkter</p>` : ''; }
 }
 
+/* storleksfält i hjälmlistor: gör storleksverktyget synligt där det behövs */
+const RULER = '<svg class="ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="m3 17 14-14 4 4L7 21z"/><path d="m7 13 2 2M10 10l2 2M13 7l2 2"/></svg>';
+function sizeBar() {
+  const box = $('#sizebar'); if (!box) return;
+  const helm = base.length && base.filter(OB.isHelmet).length >= Math.max(3, base.length * .4);
+  box.hidden = !helm; if (!helm) return;
+  const m = OB.mySize();
+  const SZ = z => String(z).toUpperCase().replace('2XL', 'XXL');
+  const on = m && [...S.z].some(z => SZ(z) === SZ(m.size));
+  box.innerHTML = m
+    ? `<span class="sb-i">${RULER}</span><span class="sb-t"><small>Din hjälmstorlek</small><b>${esc(m.size)}${m.alt ? '/' + esc(m.alt) : ''} · ${esc(String(m.cm).replace('.', ','))} cm</b></span><span class="sb-a"><button class="btn ${on ? 'b-dark' : 'b-red'}" data-sbfilter>${on ? 'Visa alla storlekar' : 'Visa bara min storlek'}</button><button class="btn b-line" data-sbtool>Ändra</button></span>`
+    : `<span class="sb-i">${RULER}</span><span class="sb-t"><small>Hitta rätt storlek</small><b>Vet du din hjälmstorlek? Mät huvudet på en minut.</b></span><span class="sb-a"><button class="btn b-red" data-sbtool>Hitta min storlek</button></span>`;
+}
 function apply(resetGrid = true) {
   view = sortList(base.filter(p => passes(p)));
   const c = $('#count'); if (c) c.textContent = view.length.toLocaleString('sv-SE') + ' produkter';
   $$('[data-showcount]').forEach(e => e.textContent = 'Visa ' + view.length.toLocaleString('sv-SE') + ' produkter');
-  renderFilters(); renderGrid(resetGrid); setUrl();
+  renderFilters(); renderGrid(resetGrid); setUrl(); sizeBar();
 }
 
 /* ---------- huvud ---------- */
@@ -242,6 +255,8 @@ async function init() {
     const x = e.target.closest('[data-x]');
     if (x) { const k = x.dataset.x, v = x.dataset.v; if (k === 'all') { S.b.clear(); S.z.clear(); S.f.clear(); S.g.clear(); S.a = false; S.min = ''; S.max = ''; S.bike = ''; } else if (k === 'g') S.g.delete(v); else if (k === 'b') S.b.delete(v); else if (k === 'z') S.z.delete(v); else if (k === 'f') S.f.delete(v); else if (k === 'a') S.a = false; else if (k === 'p') { S.min = ''; S.max = ''; } else if (k === 'mc') S.bike = ''; apply(); return; }
     if (e.target.closest('#moreBtn')) { S.shown += PER; renderGrid(false); }
+    if (e.target.closest('[data-sbtool]')) { OB.openSizeTool(null, () => apply(false)); return; }
+    if (e.target.closest('[data-sbfilter]')) { const m = OB.mySize(); if (!m) return; const SZ = z => String(z).toUpperCase().replace('2XL', 'XXL'); const have = [...S.z].some(z => SZ(z) === SZ(m.size)); if (have) S.z.clear(); else { S.z.clear(); new Set(base.flatMap(p => p.z || [])).forEach(z => { if (SZ(z) === SZ(m.size)) S.z.add(z); }); } apply(); return; }
   });
   // automatisk "visa fler" när man närmar sig slutet
   if ('IntersectionObserver' in window) {

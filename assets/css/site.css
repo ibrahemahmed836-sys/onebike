@@ -612,3 +612,11 @@ input[type=range]{width:100%;accent-color:var(--red);min-height:32px}
 .kstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .kstats>*{padding:18px!important;gap:4px!important}
 @media(max-width:760px){.kstats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kstats>*{padding:12px!important;border-radius:14px!important}.kstats>*:last-child{grid-column:1/-1}.kstats .h3{font-size:22px}.kstats .mut{font-size:13px}}
+/* storleksfält i hjälmlistor + storleksknapp på produktsidan */
+.sizebar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 12px 12px 16px;margin-bottom:16px;border-radius:18px;background:#F0FDF4;border:1px solid #BBF7D0}
+.sb-i{width:44px;height:44px;border-radius:12px;background:#15803D;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.sb-t{display:flex;flex-direction:column;flex:1;min-width:200px;line-height:1.3}.sb-t small{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#15803D}.sb-t b{font-size:15px}
+.sb-a{display:flex;gap:8px;flex-wrap:wrap}.sb-a .btn{min-height:44px;border-radius:12px;padding:0 16px;font-size:14px}
+@media(max-width:560px){.sizebar{padding:12px}.sb-i{width:38px;height:38px}.sb-a{width:100%}.sb-a .btn{flex:1}}
+.sizebtn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D;font-size:13px;font-weight:700;transition:background-color .2s}
+.sizebtn:hover{background:#DCFCE7}

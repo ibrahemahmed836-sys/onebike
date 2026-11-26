@@ -212,7 +212,7 @@ OB.openSizeTool = (p, onSave) => {
     <a class="lnk" href="storleksguide.html">Så mäter du – och så ska hjälmen sitta${OB.icon.arrow}</a></div>`,
     '<button class="btn b-red b-block" id="mhSave">Spara och visa min storlek</button>');
   const inp = $('#mhcm');
-  const upd = () => { const r = OB.helmetSize(inp.value); if (!r) return; $('#mhRes').textContent = r.size + (r.alt ? '/' + r.alt : ''); $('#mhTxt').textContent = r.between ? 'Mellan två storlekar – prova båda. Välj den mindre om den sitter tätt utan tryckpunkter.' : (p && p.z && !p.z.some(z => OB.fold(z) === OB.fold(r.size)) ? 'Den här hjälmen finns tyvärr inte i din storlek.' : 'Enligt den vanligaste storlekstabellen.'); };
+  const upd = () => { const r = OB.helmetSize(inp.value); if (!r) return; $('#mhRes').textContent = r.size + (r.alt ? '/' + r.alt : ''); $('#mhTxt').textContent = r.between ? 'Mellan två storlekar – prova båda. Välj den mindre om den sitter tätt utan tryckpunkter.' : (p && p.z && !p.z.some(z => OB.fold(z).replace('2xl', 'xxl') === OB.fold(r.size)) ? 'Den här hjälmen finns tyvärr inte i din storlek.' : 'Enligt den vanligaste storlekstabellen.'); };
   $('#genB').onclick = e => { const b = e.target.closest('[data-mh]'); if (b) { inp.value = Math.min(68, Math.max(48, (+inp.value || 57) + +b.dataset.mh)); upd(); } };
   inp.oninput = upd; upd();
   $('#mhSave').onclick = () => { const r = OB.helmetSize(inp.value); if (!r) return; store.set('ob-size', { cm: +inp.value, size: r.size, alt: r.alt || null, shape: (OB.mySize() || {}).shape || 'mellan', d: today() }); OB.close(); OB.toast('Storlek ' + r.size + ' · ' + inp.value + ' cm', 'Din storlek är sparad'); onSave && onSave(); };
