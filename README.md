@@ -25,8 +25,32 @@ Byggd för GitHub Pages: ren HTML, CSS och JavaScript utan byggsteg.
 - Varukorg, favoriter och senast visade sparas i webbläsaren (localStorage).
 - Mobil först: bottenark för filter och snabbköp, fast köpknapp på produktsidan, meny med underkategorier.
 
+## Verktyg för förare
+
+| Funktion | Var | Hur den fungerar |
+|---|---|---|
+| Hitta rätt storlek | `storleksguide.html` | Huvudmått + huvudform → hjälmstorlek. Sparas och markeras på varje hjälm. |
+| Hitta rätt visir | `hitta-visir.html` | Märke → modell → visir, pinlock och solvisir. Bygger på ”Passar …” i tillverkarens text (`data/compat.json`). |
+| Skydd & certifiering | produktsidor, filter | ECE 22.06, EN 17092-klass, skyddsnivå, Pinlock, solvisir, intercom-redo, skalmaterial, vikt – bara när texten säger det. |
+| Recensioner med passform | produktsidor | Betyg, storlek och längd. Skickas till butiken för granskning och visas direkt för skribenten. |
+| Mitt garage | `reservdelar.html#garage`, `konto.html` | Märke, modell, årsmodell → delar som passar visas först och märks ”Passar din MC”. |
+| Bygg ditt kit | `kit.html` | Körstil → en produkt per steg → hela kitet i varukorgen. Klädguide efter temperatur för snöskoter. |
+| Jämför hjälmar | `jamfor.html` | Upp till tre hjälmar sida vid sida. |
+| Boka D-Air service | `d-air.html` | Bokningsförfrågan med önskad dag, referensnummer och kalenderfil. |
+| Påminnelser | `konto.html` | Hjälmbyte (förslag 5 år) och D-Air-service som kalenderfil (.ics). |
+| Bevaka pris & lager | produktsidor | Bevakning per storlek, skickas till butiken och sparas under Mitt Onebike. |
+| Smart sök | överallt | Stavfel, synonymer på svenska och engelska, ”Menade du …”. |
+| Säsong | startsidan | Nov–mars: snöskoter först. Testa med `?season=winter` / `?season=summer`. |
+| Engelska | `en/` | Hela gränssnittet på engelska. Produktbeskrivningar och juridiska texter visas på svenska. |
+| App | `manifest.webmanifest`, `sw.js` | Kan installeras på hemskärmen och fungerar delvis offline. |
+
+Startsidans stora bilder är korta videor (Seedance 2.5 via Magnific) som spolas med scrollen: `assets/vid/` – full version för dator och lättare `-m`-version för mobil. Ingen video vid ”minska rörelse”, ”spara data” eller långsam uppkoppling.
+
 ## Bra att veta
 
+- **Kitrabatt 10 %** när minst 4 delar köps som kit är ett förslag. Ändra `OB.KIT` i `assets/js/site.js` (sätt `pct: 0` för att stänga av) innan lansering.
+- **Bokningar, bevakningar och recensioner** skickas till butiken via e-post och sparas i webbläsaren. Automatisk status, utskick och publicering kräver ett bokningssystem, ett e-postverktyg och moderering.
+- **Pushnotiser** kräver en server och ingår inte; appen kan installeras och fungerar delvis offline.
 - **Kassan** skickar beställningen till `info@onebike.se` via kundens e-postprogram. För riktig kortbetalning, Klarna eller Swish behöver en betalleverantör (till exempel Stripe, Klarna Checkout eller Svea) kopplas in.
 - **Nyhetsbrev och kontaktformulär** öppnar ett förifyllt e-postmeddelande. Byt till ett formulärverktyg eller ett nyhetsbrevsverktyg när det finns.
 - **Produktbilder** hämtas från butikens bild-CDN (`cdn.starwebserver.se` med flera). Kategori- och märkesbilder ligger i `assets/lv/`.

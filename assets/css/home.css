@@ -175,3 +175,25 @@
 .endcard .go{width:52px;height:52px;border-radius:999px;background:var(--red);display:flex;align-items:center;justify-content:center}
 
 #start,#kategorier,#skydd{color:#fff}
+
+/* scroll-styrda videor */
+video.scrub{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s;pointer-events:none;will-change:transform}
+video.scrub.on{opacity:1}
+.ip{position:relative}
+.cp-img video.scrub{left:-7%;width:114%;max-width:none}
+.cp:not(.on) .cp-img video.scrub{filter:grayscale(.6) brightness(.7)}
+@media(max-width:899px){.cp:not(.on) .cp-img video.scrub{filter:none}}
+.z-img video.scrub{object-position:50% 30%}
+.rm video.scrub{display:none}
+/* verktyg på startsidan */
+.tools-sec{background:#fff}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px}
+.tcard{position:relative;display:flex;flex-direction:column;gap:6px;padding:20px;border-radius:20px;background:var(--g1);transition:background-color .3s,transform .4s var(--ease);min-height:150px}
+.tcard .ti{width:46px;height:46px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;color:var(--red);margin-bottom:6px}
+.tcard b{font-size:18px;font-stretch:115%}.tcard small{color:var(--mut);font-size:14px}
+.tcard .go{position:absolute;top:20px;right:20px;opacity:.35;transition:opacity .3s,transform .3s}
+.tcard:hover{background:var(--g2);transform:translateY(-2px)}.tcard:hover .go{opacity:1;transform:translateX(3px)}
+.season{margin-top:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 16px 16px 20px;border-radius:20px;background:var(--bk);color:#fff}
+.season>span:nth-child(2){flex:1;min-width:220px;font-size:15px;color:#D4D4D8}.season b{color:#fff}
+.season .si{width:44px;height:44px;border-radius:12px;background:#1B1B1F;display:flex;align-items:center;justify-content:center;color:#93C5FD;flex:none}
+@media(max-width:700px){.tgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tcard{min-height:0;padding:14px;gap:4px;border-radius:16px}.tcard .ti{width:38px;height:38px;border-radius:11px;margin-bottom:4px}.tcard b{font-size:15px;line-height:1.2}.tcard small{font-size:12px;line-height:1.35}.tcard .go{display:none}}

@@ -4,10 +4,10 @@
 const OB = window.OB, { $, $$, esc, kr } = OB;
 const slug = OB.qs().get('p') || '';
 const root = $('#pd');
-let p, size = '';
+let p, size = '', wired = false;
 
 const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h % 64; };
-const descFor = s => fetch(`data/desc/${String(hash(s)).padStart(2, '0')}.json`).then(r => r.json()).then(m => m[s]).catch(() => null);
+const descFor = s => fetch(`${OB.R}data/desc/${String(hash(s)).padStart(2, '0')}.json`).then(r => r.json()).then(m => m[s]).catch(() => null);
 
 function fmtDesc(d) {
   if (!d) return '<p>Kontakta oss om du vill veta mer om produkten – vi hjälper dig gärna med passform och val.</p>';
@@ -49,13 +49,13 @@ function related(C) {
 }
 
 async function init() {
-  const [P, C] = await Promise.all([OB.products(), OB.cats()]);
+  const [P, C, CP] = await Promise.all([OB.products(), OB.cats(), OB.compat()]);
   p = OB.byS[slug];
   if (!p) {
     root.innerHTML = `<div class="wrap" style="padding-block:80px;display:flex;flex-direction:column;gap:16px;align-items:flex-start"><p class="lbl">404</p><h1 class="h2">Produkten finns inte längre</h1><p class="lead">Den kan ha sålt slut eller bytt namn. Sök efter något liknande eller utforska sortimentet.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn b-red" data-open="search">Sök i butiken</button><a class="btn b-line" href="kategorier.html">Alla kategorier</a></div></div>`;
     return;
   }
-  document.title = p.n + ' | Onebike';
+  document.title = OB.pn(p.n) + ' | Onebike';
   const md = $('meta[name=description]'); if (md) md.setAttribute('content', `${p.n} från ${p.b} – ${kr(p.p)}. Snabb leverans och 30 dagars öppet köp hos Onebike.`);
   const seen = OB.store.get('ob-seen', []).filter(s => s !== p.s); seen.unshift(p.s); OB.store.set('ob-seen', seen.slice(0, 16));
 
@@ -69,16 +69,33 @@ async function init() {
   const pct = OB.pct(p);
   const sizes = p.z || [];
   const one = sizes.length === 1;
+  size = '';
   if (one) size = sizes[0];
   const fav = !!OB.favs[p.s];
+  const helmet = OB.isHelmet(p);
+  const tags = OB.tagList(p);
+  const mine = OB.mySize();
+  const myOk = mine && helmet && sizes.some(z => OB.mySizeFor(p, z));
+  const fit = OB.fitsGarage(p), g = OB.garage();
+  const isPart = p.c.some(c => (C.reservdelar && C.reservdelar.m || []).includes(c));
+  const fitLine = fit === 2 ? `<p class="fitl ok">${OB.icon.arrow}Passar din ${esc(g.make + ' ' + (g.model || '') + (g.year ? ' (' + g.year + ')' : ''))}</p>`
+    : fit === 1 ? `<p class="fitl">Kontrollera att modellen passar din ${esc(g.make + ' ' + (g.model || ''))} – <a href="kundservice.html">fråga oss</a> om du är osäker.</p>`
+    : (isPart ? `<p class="fitl"><button class="lnk" data-garage>Lägg till din MC i Mitt garage</button> så ser du direkt vad som passar.</p>` : '');
+  const acc = CP.a[p.s], forMe = (CP.t[p.s] || []).filter((x, i, a) => a.findIndex(y => y.s === x.s) === i);
+  const accBlock = acc ? `<div class="compat"><p class="opt-h"><b>Passar till</b><span class="mut">enligt tillverkaren</span></p><div class="chips">${acc.l.map(l => `<span class="chip on" style="cursor:default">${esc(p.b)} ${esc(l)}</span>`).join('')}</div><div class="cl-list">${acc.t.filter((x, i, a) => a.findIndex(y => (y.k && y.k === x.k)) === i || !x.k).slice(0, 6).map(x => `<a href="produkt.html?p=${encodeURIComponent(x.s)}">${x.i && x.i[0] ? `<img src="${esc(OB.img(x.i[0], 'tiny'))}" alt="" loading="lazy">` : ''}<span>${esc(OB.pn(x.n))}</span></a>`).join('')}</div></div>` : '';
+  const revs = OB.reviews(p.s);
   root.innerHTML = `<div class="wrap">${crumbs(C)}<div class="pd">${gallery(imgs)}<div class="pi">
     <a class="brand" href="${brandHref(C, p.b)}">${esc(p.b)}</a>
-    <h1>${esc(p.n)}</h1>
+    <h1>${esc(OB.pn(p.n))}</h1>
     <div class="pprice"><b class="${p.o ? 'sale' : ''}">${kr(p.p)}</b>${p.o ? `<s>${kr(p.o)}</s><span class="pct">−${pct}%</span>` : ''}</div>
     ${OB.avail(p) ? `<div>${OB.avail(p)}</div>` : ''}
-    ${grp.length > 1 ? `<div><p class="opt-h"><span>Färg: <b>${esc(p.l || '')}</b></span><span class="mut">${grp.length} alternativ</span></p><div class="swatches">${grp.map(g => `<a href="produkt.html?p=${encodeURIComponent(g.s)}" aria-current="${g.s === p.s}" title="${esc(g.l || g.n)}" aria-label="${esc(g.l || g.n)}">${g.i && g.i[0] ? `<img src="${esc(OB.img(g.i[0], 'tiny'))}" alt="" loading="lazy">` : ''}</a>`).join('')}</div></div>` : (p.l ? `<p class="opt-h" style="margin:0"><span>Färg: <b>${esc(p.l)}</b></span></p>` : '')}
-    ${sizes.length ? `<div><p class="opt-h"><b id="sizeLbl">${one ? 'Storlek: ' + esc(sizes[0]) : 'Välj storlek'}</b><a href="storleksguide.html">Storleksguide</a></p><div class="sizes" id="sizes" role="group" aria-label="Storlek">${sizes.map(z => `<button data-z="${esc(z)}" aria-pressed="${one}">${esc(z)}</button>`).join('')}</div><p id="sizeErr" class="mut" style="color:#C8141C;font-size:13px;min-height:18px;margin-top:6px" aria-live="polite"></p></div>` : ''}
+    ${tags.length ? `<div class="ptags">${tags.map(([t, d], i) => `<button type="button" class="ptag" aria-expanded="false" aria-controls="tg${i}">${esc(t)}</button>`).join('')}</div><div class="ptag-d">${tags.map(([t, d], i) => `<p id="tg${i}" hidden><b>${esc(t)}</b><br><span>${esc(d)}</span></p>`).join('')}</div>` : ''}
+    ${fitLine}
+    ${grp.length > 1 ? `<div><p class="opt-h"><span>Färg: <b>${esc(OB.pn(p.l || ''))}</b></span><span class="mut">${grp.length} alternativ</span></p><div class="swatches">${grp.map(g => `<a href="produkt.html?p=${encodeURIComponent(g.s)}" aria-current="${g.s === p.s}" title="${esc(g.l || g.n)}" aria-label="${esc(g.l || g.n)}">${g.i && g.i[0] ? `<img src="${esc(OB.img(g.i[0], 'tiny'))}" alt="" loading="lazy">` : ''}</a>`).join('')}</div></div>` : (p.l ? `<p class="opt-h" style="margin:0"><span>Färg: <b>${esc(OB.pn(p.l))}</b></span></p>` : '')}
+    ${sizes.length ? `<div><p class="opt-h"><b id="sizeLbl">${one ? 'Storlek: ' + esc(sizes[0]) : 'Välj storlek'}</b>${helmet ? '<button class="lnk" id="mySize" type="button">Hitta din storlek</button>' : '<a href="storleksguide.html">Storleksguide</a>'}</p><div class="sizes" id="sizes" role="group" aria-label="Storlek">${sizes.map(z => `<button data-z="${esc(z)}" aria-pressed="${one}"${OB.mySizeFor(p, z) ? ' class="mine"' : ''}>${esc(z)}</button>`).join('')}</div>${helmet && mine ? `<p class="mut mys" style="font-size:13px;margin-top:6px">${myOk ? `Markerad: din sparade storlek (${esc(String(mine.cm).replace('.', ','))} cm).` : `Din sparade storlek ${esc(mine.size)} finns inte i den här modellen.`}</p>` : ''}<p id="sizeErr" class="mut" style="color:#C8141C;font-size:13px;min-height:18px;margin-top:6px" aria-live="polite"></p></div>` : ''}
     <div class="buy"><button class="btn b-red" id="buy">${OB.icon.plus.replace('width="20" height="20"', 'width="18" height="18"')}Lägg i varukorgen</button><button class="icb" data-fav="${esc(p.s)}" aria-pressed="${fav}" aria-label="Spara som favorit">${OB.icon.heart.replace('<svg', '<svg class="ic"')}</button></div>
+    <div class="pacts">${helmet ? `<button class="btn b-line" data-cmp="${esc(p.s)}" aria-pressed="${OB.cmpHas(p.s)}">${'<svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 4v16M16 4v16M4 8h8M12 16h8"/></svg>'}<span>Jämför</span></button>` : ''}<button class="btn b-line" id="watch">${'<svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>'}Bevaka pris &amp; lager</button>${kitStyle() ? `<a class="btn b-line" href="kit.html?stil=${kitStyle()}&med=${encodeURIComponent(p.s)}">${'<svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 4h8l1 3h3v13H4V7h3z"/><path d="M9 12h6M12 9v6"/></svg>'}Bygg kit</a>` : ''}</div>
+    ${accBlock}
     <a class="lnk" href="mailto:info@onebike.se?subject=${encodeURIComponent('Fråga om ' + p.n)}&body=${encodeURIComponent('Hej! Jag har en fråga om ' + p.n + ' (' + location.href + ').\n\n')}" style="font-weight:600;font-size:14px">Fråga om produkten${OB.icon.arrow}</a>
     <ul class="usp"><li>${OB.icon.arrow.replace('class="ic"', 'class="ic" style="color:#16A34A"')}Auktoriserad svensk återförsäljare</li><li>${OB.icon.arrow.replace('class="ic"', 'class="ic" style="color:#16A34A"')}Snabba leveranser från vårt lager</li><li>${OB.icon.arrow.replace('class="ic"', 'class="ic" style="color:#16A34A"')}30 dagars öppet köp</li></ul>
     <div class="acc">
@@ -86,32 +103,58 @@ async function init() {
       <details><summary>Leverans &amp; retur<svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="body" style="white-space:normal"><p>Onebike erbjuder snabba leveranser och 30 dagars öppet köp. Frakt ${kr(OB.SHIP)}. Läs våra köpvillkor för fullständiga leverans- och returvillkor.</p><a class="lnk" href="kopvillkor.html">Läs köpvillkoren${OB.icon.arrow}</a></div></details>
       <details><summary>Behöver du hjälp?<svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="body" style="white-space:normal"><p>Mejla <a href="mailto:info@onebike.se" style="text-decoration:underline">info@onebike.se</a> eller ring <a href="tel:+46737351135" style="text-decoration:underline;white-space:nowrap">073-735 11 35</a>. Vi hjälper dig med produktfrågor och rätt passform.</p></div></details>
     </div>
-  </div></div></div>${related(C)}
-  <div class="buybar" id="buybar"><div class="t"><span>${esc(p.n)}</span><b>${kr(p.p)}</b></div><button class="btn b-red" id="buy2">${sizes.length && !one ? 'Välj storlek' : 'Lägg i varukorgen'}</button></div>`;
+  </div></div></div>
+  ${forMe.length ? `<section class="sec-s" aria-labelledby="accH"><div class="wrap phead"><div><p class="lbl">Passar den här modellen</p><h2 class="h3" id="accH">Visir och tillbehör som passar</h2></div><a class="lnk" href="hitta-visir.html">Hitta visir${OB.icon.arrow}</a></div><div class="rail">${forMe.slice(0, 16).map(OB.card).join('')}</div></section>` : ''}
+  <section class="sec-s rev" id="reviews" aria-labelledby="revH"><div class="wrap"><div class="phead" style="padding:0"><div><p class="lbl">Recensioner</p><h2 class="h3" id="revH">Vad säger förarna?</h2></div><button class="btn b-dark" id="revBtn">Skriv en recension</button></div><div id="revList">${revHTML(revs)}</div></div></section>
+  ${related(C)}
+  <div class="buybar" id="buybar"><div class="t"><span>${esc(OB.pn(p.n))}</span><b>${kr(p.p)}</b></div><button class="btn b-red" id="buy2">${sizes.length && !one ? 'Välj storlek' : 'Lägg i varukorgen'}</button></div>`;
   wire(imgs);
   OB.reveal(root);
   // strukturerad data för sökmotorer
+  const old = $('script[type="application/ld+json"]'); if (old) old.remove();
   const ld = document.createElement('script'); ld.type = 'application/ld+json';
   ld.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'Product', name: p.n, brand: { '@type': 'Brand', name: p.b }, image: imgs.map(u => OB.img(u, 'large')), description: extra && extra.d || '', offers: { '@type': 'Offer', priceCurrency: 'SEK', price: p.p, availability: 'https://schema.org/' + (p.a === 1 ? 'InStock' : p.a === 2 ? 'LimitedAvailability' : 'BackOrder') } });
   document.head.appendChild(ld);
 }
 
+function kitStyle() {
+  const has = l => p.c.some(c => l.includes(c));
+  if (has(['skoterhjalmar', 'skoteroveraller', 'skoterhandskar', 'skoterglasogon', 'skoterstovlar', 'skoterklader'])) return 'snoskoter';
+  if (has(['crosshjalm', 'troja', 'crossbyxor', 'crosshandskar', 'crossglasogon', 'stovlar', 'crossutrustning'])) return 'motocross';
+  if (has(['mc-hjalmar', 'integralhjalmar', 'jackor', 'byxor', 'mc-handskar', 'sportstovlar', 'touringstovlar', 'mc-skor', 'skinnstall'])) return 'gata';
+  return '';
+}
+function revHTML(revs) {
+  if (!revs.length) return '<div class="rev-empty"><p><b>Inga recensioner ännu.</b> Har du kört med den? Dela passform och känsla – det hjälper nästa förare att välja rätt storlek.</p></div>';
+  const n = revs.length, avg = revs.reduce((a, r) => a + r.st, 0) / n;
+  const fc = { Liten: 0, 'Rätt': 0, Stor: 0 }; revs.forEach(r => fc[r.fit] = (fc[r.fit] || 0) + 1);
+  const pos = ((fc.Stor - fc.Liten) / n + 1) / 2 * 100;
+  return `<div class="rev-sum"><div><b class="xp" style="font-size:40px;line-height:1">${avg.toFixed(1).replace('.', ',')}</b><span class="stars-s" aria-label="${avg.toFixed(1)} av 5">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))}</span><small class="mut">${n} recension${n > 1 ? 'er' : ''}</small></div><div class="fitm"><span>Liten</span><span class="fit-bar"><i style="left:${pos.toFixed(0)}%"></i></span><span>Stor</span></div></div>` +
+    revs.map(r => `<article class="rev-it"><p><span class="stars-s">${'★'.repeat(r.st)}${'☆'.repeat(5 - r.st)}</span> <b>${esc(r.n)}</b> <small class="mut"><span>${esc(r.d)}</span> <span>väntar på granskning</span></small></p><p class="mut" style="font-size:13px"><span>${esc(r.fit === 'Rätt' ? 'Rätt storlek' : r.fit === 'Liten' ? 'Liten i storleken' : 'Stor i storleken')}</span>${r.z ? `<span> · köpte ${esc(r.z)}</span>` : ''}${r.len ? `<span> · ${esc(r.len)} cm lång</span>` : ''}</p><p>${esc(r.t)}</p></article>`).join('');
+}
+
+let gImgs = [], gCur = 0;
+const setCur = i => { $$('.gal-dots button,.gal-th button').forEach(b => b.setAttribute('aria-current', String(+b.dataset.go === i))); };
+const go = i => { const main = $('#galMain'); if (!main) return; gCur = Math.max(0, Math.min(gImgs.length - 1, i)); main.scrollTo({ left: gCur * main.clientWidth, behavior: OB.RM ? 'auto' : 'smooth' }); setCur(gCur); };
 function wire(imgs) {
+  gImgs = imgs; gCur = 0;
   const main = $('#galMain');
-  const setCur = i => { $$('.gal-dots button,.gal-th button').forEach(b => b.setAttribute('aria-current', String(+b.dataset.go === i))); };
-  let cur = 0;
   if (main) {
-    let st; main.addEventListener('scroll', () => { clearTimeout(st); st = setTimeout(() => { cur = Math.round(main.scrollLeft / main.clientWidth); setCur(cur); }, 60); }, { passive: true });
+    let st; main.addEventListener('scroll', () => { clearTimeout(st); st = setTimeout(() => { gCur = Math.round(main.scrollLeft / main.clientWidth); setCur(gCur); }, 60); }, { passive: true });
   }
-  const go = i => { if (!main) return; cur = Math.max(0, Math.min(imgs.length - 1, i)); main.scrollTo({ left: cur * main.clientWidth, behavior: OB.RM ? 'auto' : 'smooth' }); setCur(cur); };
-  root.addEventListener('click', e => {
+  if (!wired) root.addEventListener('click', e => {
     const g = e.target.closest('[data-go]'); if (g && root.contains(g) && g.closest('.gal')) { go(+g.dataset.go); return; }
-    const s = e.target.closest('[data-step]'); if (s) { go(cur + +s.dataset.step); return; }
-    const z = e.target.closest('[data-zoom]'); if (z) { openLB(+z.dataset.zoom, imgs); return; }
+    const s = e.target.closest('[data-step]'); if (s) { go(gCur + +s.dataset.step); return; }
+    const z = e.target.closest('[data-zoom]'); if (z) { openLB(+z.dataset.zoom, gImgs); return; }
     const b = e.target.closest('[data-z]'); if (b && b.closest('#sizes')) { size = b.dataset.z; $$('#sizes button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); $('#sizeLbl').textContent = 'Storlek: ' + size; $('#sizes').classList.remove('err'); $('#sizeErr').textContent = ''; $('#buy2').textContent = 'Lägg i varukorgen'; return; }
     if (e.target.closest('#buy') || e.target.closest('#buy2')) { buy(); return; }
+    const tg = e.target.closest('.ptag'); if (tg) { const id = tg.getAttribute('aria-controls'); const open = tg.getAttribute('aria-expanded') !== 'true'; $$('.ptag').forEach(x => x.setAttribute('aria-expanded', 'false')); $$('.ptag-d p').forEach(x => x.hidden = true); if (open) { tg.setAttribute('aria-expanded', 'true'); document.getElementById(id).hidden = false; } return; }
+    if (e.target.closest('#watch')) { OB.openWatch(p); return; }
+    if (e.target.closest('#revBtn')) { OB.openReview(p); return; }
+    if (e.target.closest('#mySize')) { OB.openSizeTool(p, () => init()); return; }
     const r = e.target.closest('[data-rail]'); if (r) { const el = document.getElementById(r.dataset.rail); el.scrollBy({ left: +r.dataset.dir * Math.max(280, el.clientWidth * 0.8), behavior: OB.RM ? 'auto' : 'smooth' }); }
   });
+  wired = true;
   // sticky köpknapp på mobil när huvudknappen är ur bild
   const bar = $('#buybar'), btn = $('#buy');
   if ('IntersectionObserver' in window && bar && btn) {
@@ -140,5 +183,7 @@ function openLB(i, imgs) {
   $('.x', lb).focus();
 }
 
+document.addEventListener('ob:rev', e => { if (p && e.detail === p.s) { const l = $('#revList'); if (l) l.innerHTML = revHTML(OB.reviews(p.s)); } });
+document.addEventListener('ob:garage', () => { if (p && $('#pd .pd')) init(); });
 init().catch(err => { console.error(err); root.innerHTML = '<div class="wrap" style="padding-block:80px"><p class="h3">Kunde inte ladda produkten</p><p class="mut">Ladda om sidan och försök igen.</p></div>'; });
 })();

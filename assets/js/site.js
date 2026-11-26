@@ -14,6 +14,8 @@ const store = OB.store = {
 };
 const qs = OB.qs = () => new URLSearchParams(location.search);
 const SHIP = OB.SHIP = 69;
+OB.R = html.dataset.root || '';           // '../' på engelska sidor (/en/)
+OB.lang = html.lang === 'en' ? 'en' : 'sv';
 const icon = OB.icon = {
   plus: '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="stroke-width:2.2"><path d="M12 5v14M5 12h14"/></svg>',
   minus: '<svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14"/></svg>',
@@ -51,12 +53,15 @@ OB.imgTag = (p, alt, sizes, cls = '', eager = false) => {
 
 /* ---------- data ---------- */
 let _p, _c;
-OB.products = () => _p || (_p = fetch('data/products.json').then(r => r.json()).then(list => {
+OB.products = () => _p || (_p = fetch(OB.R + 'data/products.json').then(r => r.json()).then(list => {
   OB.P = list; OB.byS = {}; OB.groups = {};
   list.forEach(p => { OB.byS[p.s] = p; if (p.k) (OB.groups[p.k] = OB.groups[p.k] || []).push(p); });
   return list;
 }));
-OB.cats = () => _c || (_c = fetch('data/categories.json').then(r => r.json()).then(c => (OB.C = c)));
+OB.cats = () => _c || (_c = fetch(OB.R + 'data/categories.json').then(r => r.json()).then(c => {
+  if (OB.R) Object.values(c).forEach(e => ['h', 'ci', 'lg'].forEach(k => { if (e[k] && /^assets\//.test(e[k])) e[k] = OB.R + e[k]; }));
+  return (OB.C = c);
+}));
 OB.inCat = (p, e) => {
   if (!e) return false;
   if (e.b && p.b !== e.b) return false;
@@ -65,6 +70,9 @@ OB.inCat = (p, e) => {
   const m = e._m || (e._m = new Set(e.m || []));
   return p.c.some(c => m.has(c));
 };
+OB.pn = n => (OB._pn ? OB._pn(n) : n);
+OB.HELMET = ['integralhjalmar', 'crosshjalm', 'mc-hjalmar', 'adventure-hjalmar', 'hjalmar', 'skoterhjalmar', 'oppningsbarhjalmar', 'barnhjalmar', 'mopedhjalmar', 'oppna-hjalmar'];
+OB.isHelmet = p => !!p && p.c.some(c => OB.HELMET.includes(c)) && /hjälm/i.test(p.n) && !/visir|pinlock|huva|väska|kindkudd/i.test(p.n);
 OB.avail = p => p.a === 1 ? '<span class="stock">I lager</span>' : p.a === 2 ? '<span class="stock lim">Få i lager</span>' : p.a === 3 ? '<span class="stock bo">Beställningsvara</span>' : '';
 OB.pct = p => p.o ? Math.round((1 - p.p / p.o) * 100) : 0;
 
@@ -76,7 +84,10 @@ OB.card = (p, i = 0) => {
   const colors = p.k && OB.groups && OB.groups[p.k] && OB.groups[p.k].length > 1 ? OB.groups[p.k].length + ' färger' : '';
   const sz = p.z && p.z.length ? (p.z.length > 1 ? p.z[0] + '–' + p.z[p.z.length - 1] : p.z[0]) : '';
   const meta = [sz, colors].filter(Boolean).join(' · ');
-  return `<article class="card" style="--i:${i}"><a class="c-img" href="produkt.html?p=${encodeURIComponent(p.s)}" tabindex="-1" aria-hidden="true">${OB.imgTag(p.i && p.i[0], '', null)}</a>${badge}<button class="fav" data-fav="${esc(p.s)}" aria-pressed="${fav}" aria-label="${fav ? 'Ta bort' : 'Spara'} ${esc(p.n)} ${fav ? 'från favoriter' : 'som favorit'}">${icon.heart}</button><div class="c-body"><span class="c-brand">${esc(p.b)}</span><h3 class="c-name"><a href="produkt.html?p=${encodeURIComponent(p.s)}">${esc(p.n)}</a></h3>${meta ? `<span class="c-meta">${esc(meta)}</span>` : '<span class="c-meta">&nbsp;</span>'}<div class="c-foot"><div class="c-price"><b class="${p.o ? 'sale' : ''}">${kr(p.p)}</b>${p.o ? `<span class="c-old">Rek. pris <s>${kr(p.o)}</s></span>` : OB.avail(p)}</div><button class="add" data-quick="${esc(p.s)}" aria-label="Lägg ${esc(p.n)} i varukorgen">${icon.plus}</button></div></div></article>`;
+  const fit = OB.fitsGarage ? OB.fitsGarage(p) : 0;
+  const cmp = OB.isHelmet(p) ? `<button class="cmpb" data-cmp="${esc(p.s)}" aria-pressed="${!!(OB.cmpHas && OB.cmpHas(p.s))}" aria-label="Jämför ${esc(OB.pn(p.n))}" title="Jämför"><svg class="ic" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M8 4v16M16 4v16M4 8h8M12 16h8"/></svg></button>` : '';
+  const name = OB.pn(p.n);
+  return `<article class="card${fit === 2 ? ' fit' : ''}" style="--i:${i}"><a class="c-img" href="produkt.html?p=${encodeURIComponent(p.s)}" tabindex="-1" aria-hidden="true">${OB.imgTag(p.i && p.i[0], '', null)}</a>${badge}<button class="fav" data-fav="${esc(p.s)}" aria-pressed="${fav}" aria-label="${fav ? 'Ta bort' : 'Spara'} ${esc(name)} ${fav ? 'från favoriter' : 'som favorit'}">${icon.heart}</button>${cmp}${fit === 2 ? '<span class="bdg fitb">Passar din MC</span>' : ''}<div class="c-body"><span class="c-brand">${esc(p.b)}</span><h3 class="c-name"><a href="produkt.html?p=${encodeURIComponent(p.s)}">${esc(name)}</a></h3>${meta ? `<span class="c-meta">${esc(meta)}</span>` : '<span class="c-meta">&nbsp;</span>'}<div class="c-foot"><div class="c-price"><b class="${p.o ? 'sale' : ''}">${kr(p.p)}</b>${p.o ? `<span class="c-old">Rek. pris <s>${kr(p.o)}</s></span>` : OB.avail(p)}</div><button class="add" data-quick="${esc(p.s)}" aria-label="Lägg ${esc(name)} i varukorgen">${icon.plus}</button></div></div></article>`;
 };
 
 /* ---------- favoriter ---------- */
@@ -102,9 +113,17 @@ OB.cartCount = () => cart.reduce((a, l) => a + l.q, 0);
 OB.lineInfo = l => {
   if (l.g) return { name: 'Presentkort ' + kr(l.g.amount), price: l.g.amount, img: null, sub: l.g.to ? 'Till ' + l.g.to : 'Digitalt presentkort' };
   const p = OB.byS && OB.byS[l.s];
-  return p ? { name: p.n, price: p.p, img: p.i && p.i[0], sub: l.z ? 'Storlek ' + l.z : '', p } : { name: l.n || l.s, price: l.pr || 0, img: l.im, sub: l.z ? 'Storlek ' + l.z : '' };
+  return p ? { name: OB.pn(p.n), price: p.p, img: p.i && p.i[0], sub: l.z ? 'Storlek ' + l.z : '', p } : { name: l.n || l.s, price: l.pr || 0, img: l.im, sub: l.z ? 'Storlek ' + l.z : '' };
 };
-OB.cartTotal = () => cart.reduce((a, l) => a + OB.lineInfo(l).price * l.q, 0);
+OB.KIT = { pct: 10, min: 4 };  // kitrabatt: förslag – ändras här eller sätts till 0 innan lansering
+OB.kitDiscount = () => {
+  if (!OB.KIT.pct) return 0;
+  const by = {}; cart.forEach(l => { if (l.kit && !l.g) (by[l.kit] = by[l.kit] || []).push(l); });
+  let d = 0; Object.values(by).forEach(ls => { if (ls.length >= OB.KIT.min) d += ls.reduce((a, l) => a + OB.lineInfo(l).price * l.q, 0) * OB.KIT.pct / 100; });
+  return Math.round(d);
+};
+OB.cartSub = () => cart.reduce((a, l) => a + OB.lineInfo(l).price * l.q, 0);
+OB.cartTotal = () => OB.cartSub() - OB.kitDiscount();
 OB.addToCart = (s, z, q = 1, extra) => {
   const p = OB.byS && OB.byS[s];
   let l = cart.find(x => x.s === s && (x.z || '') === (z || '') && !x.g);
@@ -122,12 +141,13 @@ OB.renderCart = () => {
   const list = $('#drList'); if (!list) return;
   $('#drCnt').textContent = '(' + n + ')';
   $('#drSum').textContent = kr(sum);
+  const kd = OB.kitDiscount(), kl = $('#drKit'); if (kl) { kl.hidden = !kd; kl.querySelector('b').textContent = '−' + kr(kd); }
   $('#drFoot').style.display = n ? '' : 'none';
   list.innerHTML = n ? cart.map((l, i) => {
     const f = OB.lineInfo(l);
     const pic = l.g ? `<span class="gc">Present&shy;kort</span>` : (f.img ? `<img src="${esc(OB.img(f.img, 'small'))}" alt="" loading="lazy">` : '<span class="gc" style="background:#F3F3F4"></span>');
     const link = l.g ? `<span>${esc(f.name)}</span>` : `<a href="produkt.html?p=${encodeURIComponent(l.s)}">${esc(f.name)}</a>`;
-    return `<div class="ln">${pic}<div class="ln-b"><div class="ln-t">${link}<b>${kr(f.price * l.q)}</b></div>${f.sub ? `<small>${esc(f.sub)}</small>` : ''}<div class="ln-c"><span class="qty"><button data-q="-1" data-i="${i}" aria-label="Minska antal">${icon.minus}</button><span>${l.q}</span><button data-q="1" data-i="${i}" aria-label="Öka antal">${icon.plusS}</button></span><button class="rmv" data-rm="${i}">Ta bort</button></div></div></div>`;
+    return `<div class="ln">${pic}<div class="ln-b"><div class="ln-t">${link}<b>${kr(f.price * l.q)}</b></div>${f.sub ? `<small>${esc(f.sub)}</small>` : ''}${l.kit ? '<small class="kitt">Del av kit</small>' : ''}<div class="ln-c"><span class="qty"><button data-q="-1" data-i="${i}" aria-label="Minska antal">${icon.minus}</button><span>${l.q}</span><button data-q="1" data-i="${i}" aria-label="Öka antal">${icon.plusS}</button></span><button class="rmv" data-rm="${i}">Ta bort</button></div></div></div>`;
   }).join('') : `<div class="empty" style="border:0">${icon.bag.replace('class="ic"', 'class="ic" style="color:#A1A1A8"')}<p style="font-weight:700">Din varukorg är tom</p><a href="kategori.html?c=motorcykel" class="btn b-dark">Utforska sortimentet</a></div>`;
 };
 
@@ -166,34 +186,86 @@ OB.quick = s => {
   if (!p) { location.href = 'produkt.html?p=' + encodeURIComponent(s); return; }
   if (!p.z || p.z.length <= 1) { OB.addToCart(s, p.z && p.z[0]); return; }
   const ov = $('#ov-quick');
-  $('#qkBody').innerHTML = `<div style="display:flex;gap:14px;align-items:center;padding:14px 0"><span style="width:76px;height:76px;flex:none;border-radius:14px;background:#F3F3F4;display:flex;overflow:hidden">${p.i && p.i[0] ? `<img src="${esc(OB.img(p.i[0], 'small'))}" alt="" style="width:100%;height:100%;object-fit:contain;padding:6px;mix-blend-mode:multiply">` : ''}</span><span style="display:flex;flex-direction:column;gap:2px"><span class="c-brand">${esc(p.b)}</span><b style="font-size:15px;line-height:1.3">${esc(p.n)}</b><span style="font-weight:800">${kr(p.p)}</span></span></div><p class="opt-h"><b>Välj storlek</b><a href="storleksguide.html">Storleksguide</a></p><div class="sizes" id="qkSizes">${p.z.map(z => `<button data-qz="${esc(z)}" aria-pressed="false">${esc(z)}</button>`).join('')}</div>`;
+  $('#qkBody').innerHTML = `<div style="display:flex;gap:14px;align-items:center;padding:14px 0"><span style="width:76px;height:76px;flex:none;border-radius:14px;background:#F3F3F4;display:flex;overflow:hidden">${p.i && p.i[0] ? `<img src="${esc(OB.img(p.i[0], 'small'))}" alt="" style="width:100%;height:100%;object-fit:contain;padding:6px;mix-blend-mode:multiply">` : ''}</span><span style="display:flex;flex-direction:column;gap:2px"><span class="c-brand">${esc(p.b)}</span><b style="font-size:15px;line-height:1.3">${esc(OB.pn(p.n))}</b><span style="font-weight:800">${kr(p.p)}</span></span></div><p class="opt-h"><b>Välj storlek</b><a href="storleksguide.html">Storleksguide</a></p><div class="sizes" id="qkSizes">${p.z.map(z => `<button data-qz="${esc(z)}" aria-pressed="false"${OB.mySizeFor && OB.mySizeFor(p, z) ? ' class="mine" title="Din sparade storlek"' : ''}>${esc(z)}</button>`).join('')}</div>`;
   ov.dataset.s = s; ov.dataset.z = '';
   $('#qkAdd').disabled = true; $('#qkAdd').textContent = 'Välj storlek';
   OB.open('quick');
 };
 
+/* ---------- smart sök: stavfel, synonymer (sv/en) och relevans ---------- */
+const fold = OB.fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const SYN = { helmet: 'hjalm', helmets: 'hjalm', hjalmar: 'hjalm', lid: 'hjalm', jacket: 'jack', jackets: 'jack', jackor: 'jack', glove: 'handsk', gloves: 'handsk', boot: 'stovl', boots: 'stovl', shoes: 'sko', pants: 'byx', trousers: 'byx', visor: 'visir', shield: 'visir', goggle: 'glasogon', goggles: 'glasogon', protector: 'skydd', armour: 'skydd', armor: 'skydd', back: 'rygg', knee: 'kna', chest: 'brost', headset: 'intercom', snowmobile: 'skoter', sled: 'skoter', oil: 'olja', chain: 'kedj', lock: 'las', exhaust: 'avgas', kids: 'barn', youth: 'barn', junior: 'barn', women: 'dam', womens: 'dam', ladies: 'dam', lady: 'dam', men: 'herr', mens: 'herr', black: 'svart', white: 'vit', red: 'rod', blue: 'bla', grey: 'gra', gray: 'gra', yellow: 'gul', green: 'gron', pink: 'rosa', leather: 'skinn', rain: 'regn', winter: 'vinter', suit: 'stall', jersey: 'troj', shirt: 'troj', hoodie: 'hood', bag: 'vask', backpack: 'ryggsack', cleaner: 'rengor', clear: 'klar', smoke: 'rok', mirror: 'speg', motocross: 'cross', mx: 'cross', dirt: 'cross', modular: 'oppningsbar', flip: 'oppningsbar', fullface: 'integral', battery: 'batteri', charger: 'laddare', stand: 'stod', cover: 'kapell', tank: 'tank', phone: 'telefon', mount: 'fast', earplugs: 'oronpropp', neck: 'nack', elbow: 'armbag', shoulder: 'axel', vest: 'vast', underwear: 'understall', baselayer: 'understall' };
+const dist = (a, b, max) => {  // begränsad Damerau-Levenshtein
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  const d = []; for (let i = 0; i <= a.length; i++) { d[i] = [i]; }
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) { let rmin = 1e9; for (let j = 1; j <= b.length; j++) { const c = a[i - 1] === b[j - 1] ? 0 : 1; let v = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + c); if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) v = Math.min(v, d[i - 2][j - 2] + 1); d[i][j] = v; if (v < rmin) rmin = v; } if (rmin > max) return max + 1; }
+  return d[a.length][b.length];
+};
+let PW = null, VOC = null;
+const prepSearch = () => {
+  if (PW && PW.cats === !!OB.C) return;
+  VOC = new Map();
+  PW = OB.P.map(p => {
+    const nm = fold(p.n + ' ' + p.b).split(/[^a-z0-9]+/).filter(Boolean);
+    const ex = fold((p.l || '') + ' ' + (OB.C ? p.c.map(c => OB.C[c] ? OB.C[c].n : '').join(' ') : '')).split(/[^a-z0-9]+/).filter(Boolean);
+    nm.concat(ex).forEach(w => VOC.set(w, (VOC.get(w) || 0) + 1));
+    return { nm, ex, b: fold(p.b) };
+  });
+  PW.cats = !!OB.C;
+};
+OB.findProducts = raw => {
+  if (!OB.P) return { r: [], fix: null };
+  prepSearch();
+  const terms = fold(raw).split(/[^a-z0-9]+/).filter(Boolean);
+  if (!terms.length) return { r: [], fix: null };
+  const fixes = [];
+  const cands = terms.map(t => {
+    const c = [t]; if (SYN[t]) c.push(SYN[t]);
+    const has = [...VOC.keys()].some(w => c.some(x => w.startsWith(x) || (x.length > 3 && w.includes(x))));
+    let fz = [];
+    if (!has && t.length >= 4) {
+      const max = t.length >= 7 ? 2 : 1; let best = null, bd = 9, bc = 0;
+      for (const [w, n] of VOC) { if (w.length < 3) continue; const d1 = dist(t, w, max), d2 = w.length > t.length ? dist(t, w.slice(0, t.length), max) : 9; const dd = Math.min(d1, d2); if (dd <= max) { fz.push(w); if (dd < bd || (dd === bd && n > bc)) { best = w; bd = dd; bc = n; } } }
+      if (best) fixes.push([t, best]);
+    }
+    return { c, fz: new Set(fz) };
+  });
+  const score = (W, k) => {
+    let s = 0;
+    const { c, fz } = cands[k];
+    for (const w of W.nm) { for (const x of c) { if (w === x) s = Math.max(s, 6); else if (w.startsWith(x)) s = Math.max(s, 4); else if (x.length > 3 && w.includes(x)) s = Math.max(s, 2); } if (fz.has(w)) s = Math.max(s, 3); }
+    if (s < 2) for (const w of W.ex) { for (const x of c) { if (w === x || w.startsWith(x)) s = Math.max(s, 2); else if (x.length > 3 && w.includes(x)) s = Math.max(s, 1); } if (fz.has(w)) s = Math.max(s, 1.5); }
+    return s;
+  };
+  let r = [];
+  OB.P.forEach((p, i) => { const W = PW[i]; let tot = 0; for (let k = 0; k < cands.length; k++) { const s = score(W, k); if (!s) { tot = -1; break; } tot += s; } if (tot > 0) { if (W.b === fold(raw).trim()) tot += 3; r.push([tot, p]); } });
+  let loose = false;
+  if (!r.length && terms.length > 1) {  // inga träffar på alla ord: visa närmaste
+    loose = true;
+    OB.P.forEach((p, i) => { let tot = 0; for (let k = 0; k < cands.length; k++) tot += score(PW[i], k); if (tot >= 4) r.push([tot, p]); });
+  }
+  r.sort((a, b) => b[0] - a[0] || (a[1].a === 3) - (b[1].a === 3) || a[1].x - b[1].x);
+  const fix = fixes.length ? terms.map(t => (fixes.find(f => f[0] === t) || [t, t])[1]).join(' ') : null;
+  return { r: r.map(x => x[1]), fix, loose };
+};
+
 /* ---------- sök ---------- */
 const sIn = $('#sIn'), sGrid = $('#sGrid'), sHint = $('#sHint'), sCats = $('#sCats');
-const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const norm = fold;
 let sT;
 function renderSearch() {
   if (!sIn) return;
   const raw = sIn.value.trim(), q = norm(raw);
-  if (!OB.P) { sHint.textContent = 'Laddar sortimentet…'; OB.products().then(renderSearch); return; }
+  if (!OB.P || !OB.C) { sHint.textContent = 'Laddar sortimentet…'; Promise.all([OB.products(), OB.cats()]).then(renderSearch); return; }
   const terms = q.split(/\s+/).filter(Boolean);
-  let r;
-  if (terms.length) {
-    r = [];
-    for (const p of OB.P) {
-      const h = p._h || (p._h = norm(p.n + ' ' + p.b + ' ' + (p.l || '') + ' ' + (OB.C ? p.c.map(c => OB.C[c] ? OB.C[c].n : '').join(' ') : '')));
-      if (terms.every(t => h.includes(t))) { r.push(p); }
-    }
-    r.sort((a, b) => (norm(a.n).startsWith(terms[0]) ? 0 : 1) - (norm(b.n).startsWith(terms[0]) ? 0 : 1) || a.a - b.a);
-  } else r = OB.P.filter(p => p.w).slice(-12).reverse();
-  sHint.textContent = terms.length ? (r.length ? r.length + ' träffar för ”' + raw + '”' : 'Inga träffar för ”' + raw + '”. Prova ett märke, till exempel AGV, Alpinestars eller Falco.') : 'Nyheter i butiken';
-  sGrid.innerHTML = r.slice(0, 24).map(p => `<a class="s-item" href="produkt.html?p=${encodeURIComponent(p.s)}">${p.i && p.i[0] ? `<img src="${esc(OB.img(p.i[0], 'tiny'))}" alt="" loading="lazy">` : '<span class="ph"></span>'}<span><b>${esc(p.n)}</b><small>${esc(p.b)} · ${kr(p.p)}</small></span></a>`).join('') + (r.length > 24 ? `<a class="btn b-red" href="kategori.html?q=${encodeURIComponent(raw)}" style="align-self:center">Visa alla ${r.length} träffar</a>` : '');
+  let r, fix = null, loose = false;
+  if (terms.length) { const f = OB.findProducts(raw); r = f.r; fix = f.fix; loose = f.loose; }
+  else r = OB.P.filter(p => p.w).slice(-12).reverse();
+  sHint.innerHTML = terms.length ? (r.length ? `${r.length} ${loose ? 'närliggande träffar' : 'träffar'} för ”${esc(raw)}”` + (fix && fold(fix) !== q ? ` · Menade du <button class="fixq" data-fixq="${esc(fix)}">${esc(fix)}</button>?` : '') : 'Inga träffar för ”' + esc(raw) + '”. Prova ett märke, till exempel AGV, Alpinestars eller Falco.') : 'Nyheter i butiken';
+  sGrid.innerHTML = r.slice(0, 24).map(p => `<a class="s-item" href="produkt.html?p=${encodeURIComponent(p.s)}">${p.i && p.i[0] ? `<img src="${esc(OB.img(p.i[0], 'tiny'))}" alt="" loading="lazy">` : '<span class="ph"></span>'}<span><b>${esc(OB.pn(p.n))}</b><small>${esc(p.b)} · ${kr(p.p)}</small></span></a>`).join('') + (r.length > 24 ? `<a class="btn b-red" href="kategori.html?q=${encodeURIComponent(raw)}" style="align-self:center">Visa alla ${r.length} träffar</a>` : '');
   if (sCats && OB.C && terms.length) {
-    const cs = Object.entries(OB.C).filter(([k, c]) => !c.hidden && c.cnt && terms.every(t => norm(c.n).includes(t))).slice(0, 8);
+    const cs = Object.entries(OB.C).filter(([k, c]) => !c.hidden && c.cnt && terms.every(t => norm(c.n).includes(t) || (SYN[t] && norm(c.n).includes(SYN[t])))).slice(0, 8);
     sCats.innerHTML = cs.map(([k, c]) => `<a href="kategori.html?c=${encodeURIComponent(k)}">${esc(c.n)} <small style="color:#8E8E95;margin-left:6px">${c.cnt}</small></a>`).join('');
   } else if (sCats) sCats.innerHTML = '';
 }
@@ -206,6 +278,7 @@ if (sIn) {
 /* ---------- klick ---------- */
 document.addEventListener('click', e => {
   const el = e.target;
+  const fq = el.closest('[data-fixq]'); if (fq) { sIn.value = fq.dataset.fixq; renderSearch(); sIn.focus(); return; }
   const quick = el.closest('[data-quick]'); if (quick) { e.preventDefault(); OB.products().then(() => OB.quick(quick.dataset.quick)); return; }
   const fav = el.closest('[data-fav]'); if (fav) { e.preventDefault(); OB.toggleFav(fav.dataset.fav, fav); return; }
   const qz = el.closest('[data-qz]'); if (qz) { const ov = $('#ov-quick'); ov.dataset.z = qz.dataset.qz; $$('#qkSizes button').forEach(b => b.setAttribute('aria-pressed', String(b === qz))); $('#qkAdd').disabled = false; $('#qkAdd').textContent = 'Lägg i varukorgen'; return; }
